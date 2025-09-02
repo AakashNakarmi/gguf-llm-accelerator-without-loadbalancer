@@ -1,0 +1,54 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Model files (all the large GGUF files)
+*.gguf
+*.bin
+*.model
+*.safetensors
+*.h5
+*.pkl
+*.pt
+*.pth
+
+# Specific large model files in your directory
+Phi-3-mini-4k-instruct-fp16.gguf
+phi-4-q4.gguf
+qwen2.5-7b-instruct-fp16-00001-of-00004.gguf
+qwen2.5-7b-instruct-fp16-00002-of-00004.gguf
+qwen2.5-7b-instruct-fp16-00003-of-00004.gguf
+qwen2.5-7b-instruct-fp16-00004-of-00004.gguf
+gpt-oss-20b-F16.gguf
+
+# Data directories
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Environment files
+.env
+.env.local
+*.key
+*.pem
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+
+# Docker (optional)

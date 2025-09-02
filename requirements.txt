@@ -1,0 +1,13 @@
+llama-cpp-python
+#huggingface-hub>=0.17.1
+llama-cpp-python[server]
+fastapi
+uvicorn
+httpx
+#torch==2.3.1
+#accelerate==0.31.0
+#transformers==4.46.0
+#fastapi==0.115.5
+#uvicorn==0.32.0
+#pytz
+#nvidia-ml-py3

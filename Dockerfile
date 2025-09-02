@@ -1,0 +1,64 @@
+#ARG CUDA_IMAGE="12.5.0-devel-ubuntu22.04"
+ARG CUDA_IMAGE="13.0.0-cudnn-devel-ubuntu24.04"
+FROM nvidia/cuda:${CUDA_IMAGE}
+#FROM python:3.12.8-slim
+
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y git build-essential \
+    python3 python3-pip python3.12-venv gcc wget \
+    ocl-icd-opencl-dev opencl-headers clinfo \
+    libclblast-dev libopenblas-dev \
+    cmake curl gnupg supervisor \
+    && mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
+
+# Remove Python 3.8 related CUDA-GDB binary to avoid conflicts
+RUN rm -f /usr/local/cuda*/bin/cuda-gdb-python3.8*
+	
+# Set the environment variable for CUDA toolkit
+ENV CUDAToolkit_ROOT=/usr/local/cuda
+
+# Set PATH for CUDA
+ENV PATH="${CUDAToolkit_ROOT}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${CUDAToolkit_ROOT}/lib64:${CUDAToolkit_ROOT}/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
+
+# setting build related env vars
+ENV CUDA_DOCKER_ARCH=all
+ENV GGML_CUDA=1
+
+# Install dependencies
+RUN python3 -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
+
+RUN python3 -m pip install --upgrade pip cmake
+
+# Install llama-cpp-python (build with cuda)
+# RUN CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
+RUN CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=86 -DGGML_AVX512=OFF" pip install llama-cpp-python
+# RUN pip install llama-cpp-python
+RUN pip install llama-cpp-python[server]
+
+# Install proxy server dependencies
+RUN pip install fastapi uvicorn httpx
+
+WORKDIR /app
+
+COPY app.py /app/
+COPY config-gpt.json /app/
+COPY llm_proxy_server.py /app/
+COPY gpt-oss-20b-F16.gguf /app/
+COPY start-llm.sh /app/
+COPY requirements.txt /app/
+COPY Dockerfile /app/
+COPY supervisord.conf /app/
+
+RUN chmod +x /app/start-llm.sh
+
+# Create supervisor configuration directory
+RUN mkdir -p /var/log/supervisor
+
+# Expose ports for both LLM server (8090) and proxy server (8080)
+EXPOSE 8000
+
+# Use supervisor to manage multiple processes
+# CMD ["/usr/bin/supervisord", "-c", "/app/supervisord.conf"]
+CMD ["/app/start-llm.sh"]

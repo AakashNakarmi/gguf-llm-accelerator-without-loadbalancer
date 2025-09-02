@@ -1,0 +1,18 @@
+# Use your squashed image as base
+FROM tempacrocrdevqc001.azurecr.io/ocr-llm:squashed
+
+# Restore the missing metadata
+WORKDIR /app
+
+# Set environment variables (if needed)
+ENV CUDAToolkit_ROOT=/usr/local/cuda
+ENV PATH="${CUDAToolkit_ROOT}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${CUDAToolkit_ROOT}/lib64:${CUDAToolkit_ROOT}/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
+ENV CUDA_DOCKER_ARCH=all
+ENV GGML_CUDA=1
+
+# Expose port
+EXPOSE 8000
+
+# Set the startup command
+CMD ["/app/start-llm.sh"]

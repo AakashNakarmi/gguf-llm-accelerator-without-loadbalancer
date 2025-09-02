@@ -1,0 +1,48 @@
+#ARG CUDA_IMAGE="12.5.0-devel-ubuntu22.04"
+ARG CUDA_IMAGE="12.5.0-devel-ubuntu24.04"
+FROM nvidia/cuda:${CUDA_IMAGE}
+#FROM python:3.12.8-slim
+
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y git build-essential \
+    python3 python3-pip gcc wget \
+    ocl-icd-opencl-dev opencl-headers clinfo \
+    libclblast-dev libopenblas-dev \
+    cmake curl gnupg \
+    && mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
+	
+# Set the environment variable for CUDA toolkit
+ENV CUDAToolkit_ROOT=/usr/local/cuda
+
+# Set PATH for CUDA
+ENV PATH="${CUDAToolkit_ROOT}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${CUDAToolkit_ROOT}/lib64:${CUDAToolkit_ROOT}/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
+
+# setting build related env vars
+ENV CUDA_DOCKER_ARCH=all
+ENV GGML_CUDA=1
+
+# Install depencencies
+RUN python3 -m pip install --upgrade pip cmake
+
+# Install llama-cpp-python (build with cuda)
+RUN CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=86" pip install llama-cpp-python
+# RUN pip install llama-cpp-python
+RUN pip install llama-cpp-python[server]
+
+WORKDIR /app
+
+COPY app.py /app/
+COPY config.py /app/
+COPY Phi-3-mini-4k-instruct-fp16.gguf /app/
+COPY start-llm.sh /app/
+COPY requirements.txt /app/
+COPY Dockerfile /app/
+
+RUN chmod +x /app/start-llm.sh
+
+# Expose the port on which FastAPI will run
+EXPOSE 8000
+
+# Use the entrypoint script
+ENTRYPOINT ["/app/start-llm.sh"]

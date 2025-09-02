@@ -1,0 +1,14 @@
+{
+    "host": "0.0.0.0",
+    "port": 8090,
+    "models": [
+        {
+            "model": "gpt-oss-20b-F16.gguf",
+            "model_alias" : "Phi-3-4k",
+            "n_gpu_layers": -1,
+            "offload_kqv": false,
+            "n_batch": 512,
+            "n_ctx": 3072
+        }
+    ]
+}
