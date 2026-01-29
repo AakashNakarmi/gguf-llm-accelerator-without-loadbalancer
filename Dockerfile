@@ -3,7 +3,7 @@ FROM nvidia/cuda:${CUDA_IMAGE}
 #FROM python:3.12.8-slim
 
 RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y git build-essential \
+    && apt-get install -y --no-install-recommends apt-utils git build-essential \
     python3 python3-pip python3.12-venv gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
     libclblast-dev libopenblas-dev \
@@ -32,6 +32,7 @@ RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
 RUN python3 -m pip install --upgrade pip cmake
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install llama-cpp-python (build with cuda)
 # RUN CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
