@@ -3,12 +3,31 @@
     "port": 8000,
     "models": [
         {
-            "model": "Phi-3-mini-4k-instruct-fp16.gguf",
-            "model_alias" : "Phi-3-4k",
+            "model": "phi-4-bf16.gguf",
+            "model_alias": "Phi-4-30B",
             "n_gpu_layers": -1,
-            "offload_kqv": false,
-            "n_batch": 512,
-            "n_ctx": 3072
+            "tensor_split": [0.5, 0.5],
+            "offload_kqv": true,
+            "n_batch": 4096,
+            "n_ubatch": 2048,
+            "n_ctx": 16384,
+            "flash_attn": true,
+            "use_mmap": false,
+            "use_mlock": true,
+            "n_threads": 56,
+            "n_threads_batch": 64,
+            "split_mode": 1,
+            "main_gpu": 0,
+            "mul_mat_q": true,
+            "cache": true,
+            "numa": true,
+            "logits_all": false,
+            "rope_freq_base": 10000,
+            "rope_freq_scale": 1.0,
+            "yarn_ext_factor": -1.0,
+            "yarn_attn_factor": 1.0,
+            "last_n_tokens_size": 128,
+            "seed": -1
         }
     ]
 }
