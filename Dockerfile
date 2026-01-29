@@ -2,9 +2,8 @@ ARG CUDA_IMAGE="13.0.0-cudnn-devel-ubuntu24.04"
 FROM nvidia/cuda:${CUDA_IMAGE}
 #FROM python:3.12.8-slim
 
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC F60F4B3D7FA2AF80 && \
-    apt-get update && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends apt-utils git build-essential \
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y git build-essential \
     python3 python3-pip python3.12-venv gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
     libclblast-dev libopenblas-dev \
