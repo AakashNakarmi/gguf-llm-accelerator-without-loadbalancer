@@ -41,7 +41,7 @@ WORKDIR /app
 COPY app.py /app/
 COPY config-gpt.json /app/
 COPY llm_proxy_server.py /app/
-COPY gpt-oss-20b-F16.gguf /app/
+# COPY gpt-oss-20b-F16.gguf /app/
 COPY start-llm.sh /app/
 COPY requirements.txt /app/
 COPY Dockerfile /app/
