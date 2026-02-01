@@ -1,9 +1,8 @@
-ARG CUDA_IMAGE="13.0.1-cudnn-devel-ubuntu22.04"
+ARG CUDA_IMAGE="13.0.0-cudnn-devel-ubuntu24.04"
 FROM nvidia/cuda:${CUDA_IMAGE}
 #FROM python:3.12.8-slim
 
-RUN apt-get update && apt-get install -y apt-utils \
-    && apt-get upgrade -y \
+RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y --only-upgrade gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm keyboxd \
     && apt-get install -y git build-essential \
     python3 python3-pip python3.12-venv gcc wget \
