@@ -3,6 +3,7 @@ FROM nvidia/cuda:${CUDA_IMAGE}
 #FROM python:3.12.8-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV APT_LISTCHANGES_FRONTEND=none
 
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -13,6 +14,7 @@ RUN apt-get update && \
     ocl-icd-opencl-dev opencl-headers clinfo \
     libclblast-dev libopenblas-dev \
     cmake curl supervisor vim && \
+    dpkg-reconfigure -f noninteractive apt-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
