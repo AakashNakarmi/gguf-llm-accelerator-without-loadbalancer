@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y apt-utils
 
 RUN apt-get upgrade -y \
-    && apt-get install -y --only-upgrade linux-libc-dev gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm keyboxd \
+    && apt-get install -y --only-upgrade linux-libc-dev gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm \
     && apt-get install -y git build-essential \
     python3 python3-pip python3.12-venv gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
