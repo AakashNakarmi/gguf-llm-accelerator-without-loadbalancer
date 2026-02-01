@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on error and print commands for debugging
+set -ex
+
 # Set default values with environment variable override
 HOST=${HOST:-0.0.0.0}
 PORT=${PORT:-8000}
@@ -75,14 +78,14 @@ cat > config.json << EOF
         }                                                                                                                                                                          
     ]                                                                                                                                                                              
 }                                                                                                                                                                                  
-EOF                                                                                                                                                                                
-                                                                                                                                                                                   
-echo "#################### STARTING THE SERVER #####################"                                                                                                              
-                                                                                                                                                                                   
+EOF
+
 if [[ "$RUN_APP" == "true" ]]; then                                                                                                                                                
     echo "#################### RUNNING APP #####################"                                                                                                                  
-    python3 app.py                                                                                                                                                                 
-else                                                                                                                                                                               
-    echo "#################### RUNNING LLAMA SERVER #####################"                                                                                                         
-    python3 -m llama_cpp.server --config_file config.json                                                                                                                          
-fi    
+    echo "Executing: python3 app.py"
+    python3 app.py
+else
+    echo "#################### RUNNING LLAMA SERVER #####################"
+    echo "Executing: python3 -m llama_cpp.server --config_file config.json"
+    python3 -m llama_cpp.server --config_file config.json
+fi
