@@ -3,12 +3,11 @@ FROM nvidia/cuda:${CUDA_IMAGE}
 #FROM python:3.12.8-slim
 
 RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y --only-upgrade gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm keyboxd \
     && apt-get install -y git build-essential \
     python3 python3-pip python3.12-venv gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
     libclblast-dev libopenblas-dev \
-    cmake curl supervisor vim \
+    cmake curl gnupg supervisor vim \
     && mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
 # Remove Python 3.8 related CUDA-GDB binary to avoid conflicts
@@ -32,7 +31,7 @@ ENV GGML_CUDA=1
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-RUN python3 -m pip install --upgrade pip==25.1 cmake wheel>=0.46.2
+RUN python3 -m pip install --upgrade pip cmake
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install llama-cpp-python (build with cuda)
