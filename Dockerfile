@@ -1,6 +1,7 @@
 ARG CUDA_IMAGE="12.8.0-cudnn-devel-ubuntu22.04"
-FROM nvidia/cuda:${CUDA_IMAGE}
-#FROM python:3.12.8-slim
+
+# ============ BUILDER STAGE ============
+FROM nvidia/cuda:${CUDA_IMAGE} as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV APT_LISTCHANGES_FRONTEND=none
@@ -8,22 +9,15 @@ ENV APT_LISTCHANGES_FRONTEND=none
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y apt-utils && \
-    apt-get install -y --only-upgrade linux-libc-dev gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm && \
+    apt-get install -y --only-upgrade gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm && \
     apt-get install -y git build-essential \
     python3 python3-pip python3-venv gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
     libclblast-dev libopenblas-dev \
-    cmake curl supervisor vim && \
+    cmake curl && \
     dpkg-reconfigure -f noninteractive apt-utils && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
-
-# Remove Python 3.8 related CUDA-GDB binary to avoid conflicts
-RUN rm -f /usr/local/cuda*/bin/cuda-gdb-python3.8*
-
-# Remove the vulnerable Nsight Compute plugin entirely
-RUN rm -rf /opt/nvidia/nsight-compute/*/host/target-linux-x64/plugins/efa_metrics/ || true
+    rm -rf /var/lib/apt/lists/*
 
 # Set the environment variable for CUDA toolkit
 ENV CUDAToolkit_ROOT=/usr/local/cuda
@@ -36,41 +30,61 @@ ENV LD_LIBRARY_PATH="${CUDAToolkit_ROOT}/lib64:${CUDAToolkit_ROOT}/lib:/usr/loca
 ENV CUDA_DOCKER_ARCH=all
 ENV GGML_CUDA=1
 
-# Install dependencies
+# Create venv and install build dependencies
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
 RUN python3 -m pip install --disable-pip-version-check --upgrade pip==26.0 setuptools>=78.1.1 cmake wheel>=0.46.2
-ENV DEBIAN_FRONTEND=noninteractive
 
 # Install llama-cpp-python (build with cuda)
-# RUN CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
-RUN CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=86" pip install llama-cpp-python
-# RUN pip install llama-cpp-python
-RUN pip install llama-cpp-python[server]
+RUN CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=86" pip install llama-cpp-python llama-cpp-python[server] fastapi uvicorn httpx starlette>=0.49.1
 
-# Install proxy server dependencies
-# RUN pip install fastapi uvicorn httpx
+# ============ RUNTIME STAGE ============
+FROM nvidia/cuda:12.8.0-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV APT_LISTCHANGES_FRONTEND=none
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y apt-utils && \
+    apt-get install -y --only-upgrade gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm && \
+    apt-get install -y python3 python3-pip curl supervisor && \
+    dpkg-reconfigure -f noninteractive apt-utils && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set the environment variable for CUDA toolkit
+ENV CUDAToolkit_ROOT=/usr/local/cuda
+
+# Set PATH for CUDA
+ENV PATH="${CUDAToolkit_ROOT}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${CUDAToolkit_ROOT}/lib64:${CUDAToolkit_ROOT}/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
+
+# Copy venv and built packages from builder
+COPY --from=builder /app/venv /app/venv
+
+ENV PATH="/app/venv/bin:$PATH"
+
+# Remove Python 3.8 related CUDA-GDB binary to avoid conflicts
+RUN rm -f /usr/local/cuda*/bin/cuda-gdb-python3.8*
+
+# Remove the vulnerable Nsight Compute plugin entirely
+RUN rm -rf /opt/nvidia/nsight-compute/*/host/target-linux-x64/plugins/efa_metrics/ || true
 
 WORKDIR /app
 
 COPY app.py /app/
 COPY config.json /app/
-# COPY phi-4-bf16.gguf /app/
 COPY start-llm.sh /app/
 COPY requirements.txt /app/
 COPY Dockerfile /app/
-# COPY supervisord.conf /app/
 
+RUN chmod +x /app/start-llm.sh
 
-RUN chmod +x /app/start-llm.sh                                                                                                                                                     
-                                                                                                                                                                                   
-# Create supervisor configuration directory                                                                                                                                        
-# RUN mkdir -p /var/log/supervisor                                                                                                                                                 
-                                                                                                                                                                                   
-# Expose ports for both LLM server (8090) and proxy server (8080)                                                                                                                  
-EXPOSE 8000                                                                                                                                                                        
-                                                                                                                                                                                   
-# Use supervisor to manage multiple processes                                                                                                                                      
-# CMD ["/usr/bin/supervisord", "-c", "/app/supervisord.conf"]                                                                                                                      
+# Expose ports
+EXPOSE 8000
+
+# Use supervisor to manage multiple processes
+# CMD ["/usr/bin/supervisord", "-c", "/app/supervisord.conf"]
 CMD ["/app/start-llm.sh"]
