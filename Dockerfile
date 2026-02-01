@@ -1,4 +1,4 @@
-ARG CUDA_IMAGE="13.0.0-cudnn-devel-ubuntu24.04"
+ARG CUDA_IMAGE="12.8.0-cudnn-devel-ubuntu22.04"
 FROM nvidia/cuda:${CUDA_IMAGE}
 #FROM python:3.12.8-slim
 
@@ -32,7 +32,7 @@ ENV GGML_CUDA=1
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-RUN python3 -m pip install --upgrade pip==25.1 cmake wheel>=0.46.2
+RUN python3 -m pip install --upgrade pip==26.0 cmake wheel>=0.46.2
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install llama-cpp-python (build with cuda)
