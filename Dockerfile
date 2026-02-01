@@ -1,23 +1,21 @@
-ARG CUDA_IMAGE="12.8.0-cudnn-devel-ubuntu22.04"
+ARG CUDA_IMAGE="13.0.0-cudnn-devel-ubuntu24.04"
+FROM nvidia/cuda:${CUDA_IMAGE}
+#FROM python:3.12.8-slim
 
-# ============ BUILDER STAGE ============
-FROM nvidia/cuda:${CUDA_IMAGE} as builder
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV APT_LISTCHANGES_FRONTEND=none
-
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y apt-utils && \
-    apt-get install -y --only-upgrade gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm && \
-    apt-get install -y git build-essential \
-    python3 python3-pip python3-venv gcc wget \
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y git build-essential \
+    python3 python3-pip python3.12-venv gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
     libclblast-dev libopenblas-dev \
-    cmake curl && \
-    dpkg-reconfigure -f noninteractive apt-utils && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    cmake curl gnupg supervisor vim \
+    && mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
+
+# Remove Python 3.8 related CUDA-GDB binary to avoid conflicts
+RUN rm -f /usr/local/cuda*/bin/cuda-gdb-python3.8*
+
+# Remove the vulnerable Nsight Compute plugin entirely
+RUN rm -rf /opt/nvidia/nsight-compute/*/host/target-linux-x64/plugins/efa_metrics/ || true
+
 
 # Set the environment variable for CUDA toolkit
 ENV CUDAToolkit_ROOT=/usr/local/cuda
