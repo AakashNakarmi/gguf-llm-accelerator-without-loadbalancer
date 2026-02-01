@@ -40,7 +40,7 @@ ENV GGML_CUDA=1
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-RUN python3 -m pip install --disable-pip-version-check --upgrade pip==26.0 cmake wheel>=0.46.2
+RUN python3 -m pip install --disable-pip-version-check --upgrade pip==26.0 setuptools>=78.1.1 cmake wheel>=0.46.2
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install llama-cpp-python (build with cuda)
