@@ -2,8 +2,11 @@ ARG CUDA_IMAGE="12.8.0-cudnn-devel-ubuntu22.04"
 FROM nvidia/cuda:${CUDA_IMAGE}
 #FROM python:3.12.8-slim
 
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y --only-upgrade gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm keyboxd \
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y apt-utils \
+    && apt-get upgrade -y \
+    && apt-get install -y --only-upgrade linux-libc-dev gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm keyboxd \
     && apt-get install -y git build-essential \
     python3 python3-pip python3.12-venv gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
@@ -32,7 +35,7 @@ ENV GGML_CUDA=1
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-RUN python3 -m pip install --upgrade pip==26.0 cmake wheel>=0.46.2
+RUN python3 -m pip install --disable-pip-version-check --upgrade pip==26.0 cmake wheel>=0.46.2
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install llama-cpp-python (build with cuda)
