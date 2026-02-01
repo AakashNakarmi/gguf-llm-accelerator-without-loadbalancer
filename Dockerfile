@@ -4,8 +4,9 @@ FROM nvidia/cuda:${CUDA_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y apt-utils \
-    && apt-get upgrade -y \
+RUN apt-get update && apt-get install -y apt-utils
+
+RUN apt-get upgrade -y \
     && apt-get install -y --only-upgrade linux-libc-dev gnupg gnupg2 gnupg-utils gpgv dirmngr gpg-agent gpgconf gpgsm keyboxd \
     && apt-get install -y git build-essential \
     python3 python3-pip python3.12-venv gcc wget \
