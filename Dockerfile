@@ -1,4 +1,4 @@
-ARG CUDA_IMAGE="13.1.0-cudnn-devel-ubuntu24.04"
+ARG CUDA_IMAGE="13.0.1-cudnn-devel-ubuntu22.04"
 FROM nvidia/cuda:${CUDA_IMAGE}
 #FROM python:3.12.8-slim
 
