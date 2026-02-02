@@ -1,14 +1,13 @@
 ARG CUDA_IMAGE="13.0.0-cudnn-devel-ubuntu24.04"
 FROM nvidia/cuda:${CUDA_IMAGE}
-#FROM python:3.12.8-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm
 
 RUN apt-get update && apt-get install -y apt-utils \
-    && apt-get upgrade -y \
+    && apt-get upgrade -y python3 \
     && apt-get install -y git build-essential \
-    python3 python3-pip python3.12-venv gcc wget \
+    python3.12=3.12.6* python3-pip python3.12-venv gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
     libclblast-dev libopenblas-dev \
     cmake curl gnupg supervisor vim \
@@ -36,7 +35,7 @@ ENV GGML_CUDA=1
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-RUN python3 -m pip install --upgrade pip cmake
+RUN python3 -m pip install --upgrade "pip==24.2" cmake wheel==0.46.2 setuptools==78.1.1
 
 # Install llama-cpp-python (build with cuda)
 # RUN CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
@@ -46,6 +45,10 @@ RUN pip install llama-cpp-python[server]
 
 # Install proxy server dependencies
 # RUN pip install fastapi uvicorn httpx
+
+# Copy and install requirements
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
 
 WORKDIR /app
 
